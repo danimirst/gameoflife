@@ -1,115 +1,90 @@
 import 'package:flutter/material.dart';
+/// Cell represents a cell in the game of life.
+class Cell {
+  Cell(this.x, this.y);
+
+  /// x, y represent the location of the cell.
+  int x, y;
+
+  /// Will the cell die in the next generation?
+  bool willDie = false;
+
+  @override
+  String toString() => '[$x, $y]';
+
+  @override
+  bool operator ==(Object other) =>
+      (other is Cell) && (x == other.x) && (y == other.y);
+
+  @override
+  int get hashCode => x * 100000 + y;
+}
+
+/// A list of neighbors (both dead or alive) next to the given [cell].
+List<Cell> neighbors(Cell cell) {
+  final x = cell.x;
+  final y = cell.y;
+  return [
+    Cell(x - 1, y + 1),
+    Cell(x, y + 1),
+    Cell(x + 1, y + 1),
+    Cell(x - 1, y),
+    Cell(x + 1, y),
+    Cell(x - 1, y - 1),
+    Cell(x, y - 1),
+    Cell(x + 1, y - 1),
+  ];
+}
+
+/// How many alive cells are next to the [cell]. The [cells] is the
+/// list of all currently alive cells.
+int countNeighbors(Cell cell, List<Cell> cells) {
+  var counter = 0;
+  for (final neighbor in neighbors(cell)) {
+    if (cells.contains(neighbor)) {
+      counter += 1;
+    }
+  }
+  return counter;
+}
 
 void main() {
-  runApp(const MyApp());
-}
+  // List of alive cells.
+  final cells = [Cell(4, 4), Cell(5, 3), Cell(5, 2), Cell(4, 2), Cell(3, 2)];
+  print(cells);
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  for (var generation = 0; generation < 100; generation++) {
+    // Step 1 (Checks which cells die due to over/underpopulation.
+    for (final cell in cells) {
+      final n = countNeighbors(cell, cells);
+      // Will the cell die due to over/underpopulation next generation?
+      if (!(n == 2 || n == 3)) {
+        cell.willDie = true;
+      }
+    }
+    // All cells with willDie = true will die in Step 3
 
-  // This widget is the root of your application.
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
+    // Step 2 (Checks which cells will be born.)
+    final counts = <Cell, int>{};
+    for (final cell in cells) {
+      for (final neighbor in neighbors(cell)) {
+        if (!cells.contains(neighbor)) {
+          final n = counts[neighbor];
+          counts[neighbor] = (n ?? 0) + 1;
+        }
+      }
+    }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+    // Step 3 (Apply changes from Step 1 + Step 2.)
+    cells.removeWhere((cell) => cell.willDie);
+    counts.forEach((cell, count) {
+      if (count == 3) {
+        cells.add(cell);
+      }
     });
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
-    );
+    print(cells);
+
   }
 }
+
