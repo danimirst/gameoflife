@@ -26,7 +26,7 @@ void main() {
       final n = countNeighbors(cell, cells);
       // Will the cell die due to over/underpopulation next generation?
       if (!(n == 2 || n == 3)) {
-        cell.willDie = true;
+        cell.die();
       }
     }
     // All cells with willDie = true will die in Step 3

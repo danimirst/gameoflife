@@ -1,6 +1,12 @@
+import 'package:gameoflife/cell_component.dart';
+import 'package:gameoflife/game_of_life.dart';
+
 import 'cell.dart';
 
 class Field {
+  Field(this.game);
+
+  GameOfLife game;
   List<Cell> cells = [];
 
   /// How many alive cells are next to the [cell]. The [cells] is the
@@ -21,7 +27,7 @@ class Field {
       final n = countNeighbors(cell);
       // Will the cell die due to over/underpopulation next generation?
       if (!(n == 2 || n == 3)) {
-        cell.willDie = true;
+        cell.die();
       }
     }
     // All cells with willDie = true will die in Step 3
@@ -44,5 +50,12 @@ class Field {
         cells.add(cell);
       }
     });
+    addCellsToGame();
+  }
+
+  void addCellsToGame() {
+    for (final cell in cells) {
+      cell.component ??= CellComponent(cell.x, cell.y)..addToParent(game.world);
+    }
   }
 }

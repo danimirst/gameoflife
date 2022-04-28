@@ -1,3 +1,5 @@
+import 'cell_component.dart';
+
 class Cell {
   Cell(this.x, this.y);
 
@@ -5,7 +7,14 @@ class Cell {
   int x, y;
 
   /// Will the cell die in the next generation?
-  bool willDie = false;
+  bool get willDie => _willDie;
+  bool _willDie = false;
+  void die() {
+    _willDie = true;
+    component?.removeFromParent();
+  }
+
+  CellComponent? component;
 
   @override
   String toString() => '[$x, $y]';
