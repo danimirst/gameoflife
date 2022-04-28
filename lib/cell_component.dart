@@ -2,8 +2,8 @@ import 'dart:ui';
 
 import 'package:flame/components.dart';
 
-class Cell extends PositionComponent {
-  Cell(int x, int y)
+class CellComponent extends PositionComponent {
+  CellComponent(int x, int y)
       : super(
           position: Vector2(x * 1.0 - 1, y * 1.0 - 1),
           size: Vector2(0.99, 0.99),
